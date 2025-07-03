@@ -1,0 +1,222 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Assign Grievance #{{ grievance.grievance_id }} - Maintenance{% endblock %}
+
+{% block page_title %}Assign Grievance{% endblock %}
+{% block page_description %}Assign grievance #{{ grievance.grievance_id }} to maintenance staff{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Grievance Summary -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-info-circle mr-2 text-blue-600"></i>
+                Grievance Summary
+            </h3>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-3">
+                    <div class="flex items-center">
+                        <span class="text-gray-600 w-32">Grievance ID:</span>
+                        <span class="font-medium text-gray-900">#{{ grievance.grievance_id }}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 w-32">Guest Name:</span>
+                        <span class="font-medium text-gray-900">{{ grievance.guest_name }}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 w-32">Room Number:</span>
+                        <span class="font-medium text-gray-900">{{ grievance.room_number }}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 w-32">Problem Type:</span>
+                        <span class="font-medium text-gray-900">{{ grievance.get_problem_type_display }}</span>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center">
+                        <span class="text-gray-600 w-32">Current Status:</span>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium
+                            {% if grievance.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% elif grievance.status == 'assigned' %}bg-blue-100 text-blue-800
+                            {% elif grievance.status == 'in_progress' %}bg-orange-100 text-orange-800
+                            {% elif grievance.status == 'completed' %}bg-green-100 text-green-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ grievance.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 w-32">Priority:</span>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium
+                            {% if grievance.priority == 'low' %}bg-gray-100 text-gray-800
+                            {% elif grievance.priority == 'medium' %}bg-blue-100 text-blue-800
+                            {% elif grievance.priority == 'high' %}bg-orange-100 text-orange-800
+                            {% elif grievance.priority == 'urgent' %}bg-red-100 text-red-800{% endif %}">
+                            {{ grievance.get_priority_display }}
+                        </span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 w-32">Reported:</span>
+                        <span class="text-gray-900">{{ grievance.created_at|date:"M d, Y g:i A" }}</span>
+                    </div>
+                    {% if grievance.assigned_to %}
+                    <div class="flex items-center">
+                        <span class="text-gray-600 w-32">Currently Assigned:</span>
+                        <span class="font-medium text-gray-900">{{ grievance.assigned_to.get_full_name|default:grievance.assigned_to.username }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <label class="text-sm font-medium text-gray-600">Description</label>
+                <div class="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p class="text-gray-900">{{ grievance.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assignment Form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-user-plus mr-2 text-green-600"></i>
+                Assignment Details
+            </h3>
+        </div>
+        <div class="px-6 py-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Assigned To -->
+                <div>
+                    <label for="{{ form.assigned_to.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-2 text-blue-600"></i>
+                        Assign to Maintenance Staff *
+                    </label>
+                    {{ form.assigned_to }}
+                    {% if form.assigned_to.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.assigned_to.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-600">Select a maintenance staff member to handle this grievance</p>
+                </div>
+                
+                <!-- Priority -->
+                <div>
+                    <label for="{{ form.priority.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-exclamation-triangle mr-2 text-orange-600"></i>
+                        Priority Level *
+                    </label>
+                    {{ form.priority }}
+                    {% if form.priority.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.priority.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-600">Set or update the priority level for this grievance</p>
+                </div>
+                
+                <!-- Status -->
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-flag mr-2 text-indigo-600"></i>
+                        Status
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.status.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-600">Update the status if needed (will be set to 'Assigned' automatically when staff is assigned)</p>
+                </div>
+                
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                    <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+                            <div class="text-sm text-red-700">
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                    <a href="{% url 'maintenance:grievance_detail' grievance.grievance_id %}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Cancel
+                    </a>
+                    
+                    <div class="flex items-center space-x-3">
+                        <button type="reset" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <i class="fas fa-undo mr-2"></i>
+                            Reset
+                        </button>
+                        <button type="submit" class="inline-flex items-center px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200">
+                            <i class="fas fa-check mr-2"></i>
+                            Assign Grievance
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Assignment History (if applicable) -->
+    {% if grievance.assigned_to %}
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-center">
+            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+            <div class="text-sm text-blue-800">
+                <p class="font-medium">Current Assignment</p>
+                <p>This grievance is currently assigned to <strong>{{ grievance.assigned_to.get_full_name|default:grievance.assigned_to.username }}</strong>. Updating the assignment will reassign it to the selected staff member.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Add form validation and interactivity
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const assignedToSelect = document.querySelector('#{{ form.assigned_to.id_for_label }}');
+    const statusSelect = document.querySelector('#{{ form.status.id_for_label }}');
+    
+    // Auto-update status when staff is assigned
+    if (assignedToSelect && statusSelect) {
+        assignedToSelect.addEventListener('change', function() {
+            if (this.value && statusSelect.value === 'pending') {
+                statusSelect.value = 'assigned';
+            }
+        });
+    }
+    
+    // Form submission confirmation
+    form.addEventListener('submit', function(e) {
+        const assignedTo = assignedToSelect.value;
+        const assignedName = assignedToSelect.options[assignedToSelect.selectedIndex].text;
+        
+        if (assignedTo && !confirm(`Are you sure you want to assign this grievance to ${assignedName}?`)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% block title %}Check-in Process - Hotel Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-sign-in-alt me-3"></i>Guest Check-in
+        </h1>
+        <p class="text-muted">Process guest arrival and room assignment.</p>
+    </div>
+</div>
+
+<!-- Check-in Form -->
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-check me-2"></i>Check-in Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="checkin-form">
+                    {% csrf_token %}
+                    
+                    <!-- Booking Search -->
+                    <div class="mb-4">
+                        <label for="booking-search" class="form-label">Find Booking</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="booking-search"
+                                   placeholder="Enter Booking ID, Guest Name, Email, or Phone">
+                            <button type="button" class="btn btn-outline-primary" onclick="searchBooking()">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Booking Details (Hidden until booking is found) -->
+                    <div id="booking-details" style="display: none;">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-user me-2"></i>Guest Information
+                                        </h6>
+                                        <p class="card-text">
+                                            <strong id="guest-name"></strong><br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-envelope me-1"></i><span id="guest-email"></span><br>
+                                                <i class="fas fa-phone me-1"></i><span id="guest-phone"></span>
+                                            </small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-bed me-2"></i>Room Information
+                                        </h6>
+                                        <p class="card-text">
+                                            <strong>Room <span id="room-number"></span></strong><br>
+                                            <small class="text-muted">
+                                                <span id="room-type"></span> • <span id="room-occupancy"></span> guests
+                                            </small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Check-in Date</label>
+                                <input type="date" class="form-control" id="checkin-date" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Check-out Date</label>
+                                <input type="date" class="form-control" id="checkout-date" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Number of Guests</label>
+                                <input type="number" class="form-control" id="num-guests" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Total Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="total-amount" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Advance Payment</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="advance-payment" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Special Requests -->
+                        <div class="mb-4">
+                            <label class="form-label">Special Requests</label>
+                            <textarea class="form-control" id="special-requests" rows="3" readonly></textarea>
+                        </div>
+
+                        <!-- Check-in Notes -->
+                        <div class="mb-4">
+                            <label for="checkin-notes" class="form-label">Check-in Notes (Optional)</label>
+                            <textarea class="form-control" id="checkin-notes" rows="3" 
+                                      placeholder="Add any additional notes for this check-in..."></textarea>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </button>
+                            <div>
+                                <button type="button" class="btn btn-outline-primary me-2" onclick="printDetails()">
+                                    <i class="fas fa-print me-2"></i>Print Details
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="processCheckin()">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Complete Check-in
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Check-ins -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Check-ins
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Guest</th>
+                                <th>Room</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-checkins">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">
+                                    <i class="fas fa-info-circle me-2"></i>No recent check-ins
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentBooking = null;
+
+function searchBooking() {
+    const searchTerm = document.getElementById('booking-search').value.trim();
+    if (!searchTerm) {
+        alert('Please enter a search term');
+        return;
+    }
+
+    // Simulate booking search (replace with actual AJAX call)
+    showLoading();
+    setTimeout(() => {
+        const mockBooking = {
+            booking_id: 'BK-' + Math.random().toString(36).substr(2, 9),
+            guest_name: 'John Doe',
+            guest_email: 'john.doe@email.com',
+            guest_phone: '+1234567890',
+            room_number: '101',
+            room_type: 'Deluxe',
+            max_occupancy: 2,
+            check_in_date: new Date().toISOString().split('T')[0],
+            check_out_date: new Date(Date.now() + 3*24*60*60*1000).toISOString().split('T')[0],
+            number_of_guests: 2,
+            total_amount: 300.00,
+            advance_payment: 100.00,
+            special_requests: 'Late check-in requested'
+        };
+        
+        displayBookingDetails(mockBooking);
+        hideLoading();
+    }, 1000);
+}
+
+function displayBookingDetails(booking) {
+    currentBooking = booking;
+    
+    document.getElementById('guest-name').textContent = booking.guest_name;
+    document.getElementById('guest-email').textContent = booking.guest_email;
+    document.getElementById('guest-phone').textContent = booking.guest_phone;
+    document.getElementById('room-number').textContent = booking.room_number;
+    document.getElementById('room-type').textContent = booking.room_type;
+    document.getElementById('room-occupancy').textContent = booking.max_occupancy;
+    document.getElementById('checkin-date').value = booking.check_in_date;
+    document.getElementById('checkout-date').value = booking.check_out_date;
+    document.getElementById('num-guests').value = booking.number_of_guests;
+    document.getElementById('total-amount').value = booking.total_amount.toFixed(2);
+    document.getElementById('advance-payment').value = booking.advance_payment.toFixed(2);
+    document.getElementById('special-requests').value = booking.special_requests || '';
+    
+    document.getElementById('booking-details').style.display = 'block';
+}
+
+function processCheckin() {
+    if (!currentBooking) {
+        alert('No booking selected');
+        return;
+    }
+
+    if (confirm(`Confirm check-in for ${currentBooking.guest_name}?`)) {
+        showLoading();
+        
+        // Simulate check-in process (replace with actual AJAX call)
+        setTimeout(() => {
+            hideLoading();
+            alert('Check-in completed successfully!');
+            
+            // Add to recent check-ins
+            addToRecentCheckins(currentBooking);
+            
+            // Clear form
+            clearForm();
+        }, 1500);
+    }
+}
+
+function clearForm() {
+    document.getElementById('booking-search').value = '';
+    document.getElementById('checkin-notes').value = '';
+    document.getElementById('booking-details').style.display = 'none';
+    currentBooking = null;
+}
+
+function printDetails() {
+    if (!currentBooking) return;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head><title>Check-in Details</title></head>
+        <body>
+            <h2>Check-in Details</h2>
+            <p><strong>Guest:</strong> ${currentBooking.guest_name}</p>
+            <p><strong>Room:</strong> ${currentBooking.room_number}</p>
+            <p><strong>Check-in:</strong> ${currentBooking.check_in_date}</p>
+            <p><strong>Check-out:</strong> ${currentBooking.check_out_date}</p>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+function addToRecentCheckins(booking) {
+    const tbody = document.getElementById('recent-checkins');
+    const now = new Date().toLocaleTimeString();
+    
+    const row = `
+        <tr>
+            <td>${now}</td>
+            <td>${booking.guest_name}</td>
+            <td>Room ${booking.room_number}</td>
+            <td><span class="badge bg-success">Checked In</span></td>
+        </tr>
+    `;
+    
+    tbody.innerHTML = row + tbody.innerHTML;
+}
+
+function showLoading() {
+    // Add loading state to buttons
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => btn.disabled = true);
+}
+
+function hideLoading() {
+    // Remove loading state from buttons
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => btn.disabled = false);
+}
+</script>
+{% endblock %}

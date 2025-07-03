@@ -1,0 +1,162 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Manage Rooms - Hotel Admin{% endblock %}
+{% block page_title %}Manage Rooms{% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Manage Rooms</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                            <i class="fas fa-plus"></i> Add New Room
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Rooms Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">All Rooms</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Room Number</th>
+                                        <th>Type</th>
+                                        <th>Price/Night</th>
+                                        <th>Max Occupancy</th>
+                                        <th>Status</th>
+                                        <th>Amenities</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for room in rooms %}
+                                    <tr>
+                                        <td><strong>{{ room.room_number }}</strong></td>
+                                        <td>
+                                            <span class="badge bg-info">{{ room.get_room_type_display }}</span>
+                                        </td>
+                                        <td>${{ room.price_per_night }}</td>
+                                        <td>{{ room.max_occupancy }} guests</td>
+                                        <td>
+                                            {% if room.is_available %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Occupied</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if room.amenities %}
+                                                <small class="text-muted">{{ room.amenities|truncatewords:5 }}</small>
+                                            {% else %}
+                                                <small class="text-muted">No amenities listed</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="editRoom({{ room.id }})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteRoom({{ room.id }})">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">No rooms found. Add your first room!</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Room Modal -->
+                <div class="modal fade" id="addRoomModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Add New Room</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.room_number.id_for_label }}" class="form-label">Room Number</label>
+                                                {{ form.room_number }}
+                                                {% if form.room_number.errors %}
+                                                    <div class="text-danger">{{ form.room_number.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.room_type.id_for_label }}" class="form-label">Room Type</label>
+                                                {{ form.room_type }}
+                                                {% if form.room_type.errors %}
+                                                    <div class="text-danger">{{ form.room_type.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.price_per_night.id_for_label }}" class="form-label">Price per Night</label>
+                                                {{ form.price_per_night }}
+                                                {% if form.price_per_night.errors %}
+                                                    <div class="text-danger">{{ form.price_per_night.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.max_occupancy.id_for_label }}" class="form-label">Max Occupancy</label>
+                                                {{ form.max_occupancy }}
+                                                {% if form.max_occupancy.errors %}
+                                                    <div class="text-danger">{{ form.max_occupancy.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="{{ form.amenities.id_for_label }}" class="form-label">Amenities</label>
+                                        {{ form.amenities }}
+                                        {% if form.amenities.errors %}
+                                            <div class="text-danger">{{ form.amenities.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Add Room</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,250 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Grievance #{{ grievance.grievance_id }} - Maintenance{% endblock %}
+
+{% block page_title %}Grievance Details{% endblock %}
+{% block page_description %}View and manage grievance #{{ grievance.grievance_id }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Grievance Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-900">Grievance #{{ grievance.grievance_id }}</h3>
+                    <p class="text-gray-600 mt-1">{{ grievance.get_problem_type_display }}</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="px-3 py-1 rounded-full text-sm font-medium
+                        {% if grievance.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif grievance.status == 'assigned' %}bg-blue-100 text-blue-800
+                        {% elif grievance.status == 'in_progress' %}bg-orange-100 text-orange-800
+                        {% elif grievance.status == 'completed' %}bg-green-100 text-green-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ grievance.get_status_display }}
+                    </span>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium
+                        {% if grievance.priority == 'low' %}bg-gray-100 text-gray-800
+                        {% elif grievance.priority == 'medium' %}bg-blue-100 text-blue-800
+                        {% elif grievance.priority == 'high' %}bg-orange-100 text-orange-800
+                        {% elif grievance.priority == 'urgent' %}bg-red-100 text-red-800{% endif %}">
+                        {{ grievance.get_priority_display }} Priority
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Guest Information -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-user mr-2 text-blue-600"></i>
+                        Guest Information
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Name:</span>
+                            <span class="font-medium text-gray-900">{{ grievance.guest_name }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Email:</span>
+                            <span class="text-gray-900">{{ grievance.guest_email }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Phone:</span>
+                            <span class="text-gray-900">{{ grievance.guest_phone }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Room:</span>
+                            <span class="font-medium text-gray-900">{{ grievance.room_number }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Booking:</span>
+                            <span class="text-gray-900">{{ grievance.booking_id }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Issue Details -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2 text-orange-600"></i>
+                        Issue Details
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Category:</span>
+                            <span class="font-medium text-gray-900">{{ grievance.get_problem_type_display }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Priority:</span>
+                            <span class="font-medium text-gray-900 capitalize">{{ grievance.get_priority_display }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Reported:</span>
+                            <span class="text-gray-900">{{ grievance.created_at|date:"M d, Y g:i A" }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Updated:</span>
+                            <span class="text-gray-900">{{ grievance.updated_at|date:"M d, Y g:i A" }}</span>
+                        </div>
+                        {% if grievance.assigned_to %}
+                        <div class="flex items-center">
+                            <span class="text-gray-600 w-24">Assigned:</span>
+                            <span class="font-medium text-gray-900">{{ grievance.assigned_to.get_full_name|default:grievance.assigned_to.username }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Description -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h4 class="text-lg font-medium text-gray-900 flex items-center">
+                <i class="fas fa-file-alt mr-2 text-green-600"></i>
+                Description
+            </h4>
+        </div>
+        <div class="px-6 py-4">
+            <p class="text-gray-900 leading-relaxed">{{ grievance.description }}</p>
+        </div>
+    </div>
+    
+    <!-- Attachment -->
+    {% if grievance.attachment %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h4 class="text-lg font-medium text-gray-900 flex items-center">
+                <i class="fas fa-paperclip mr-2 text-purple-600"></i>
+                Attachment
+            </h4>
+        </div>
+        <div class="px-6 py-4">
+            <div class="max-w-md">
+                <img src="{{ grievance.attachment.url }}" alt="Grievance attachment" class="w-full rounded-lg border border-gray-200 shadow-sm">
+                <a href="{{ grievance.attachment.url }}" target="_blank" class="inline-flex items-center mt-3 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                    <i class="fas fa-external-link-alt mr-2"></i>
+                    View Full Size
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Maintenance Work Details -->
+    {% if maintenance_work %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h4 class="text-lg font-medium text-gray-900 flex items-center">
+                    <i class="fas fa-tools mr-2 text-indigo-600"></i>
+                    Maintenance Work Details
+                </h4>
+                {% if user.user_type == 'admin' or grievance.assigned_to == user %}
+                <a href="{% url 'maintenance:edit_maintenance_work' maintenance_work.work_id %}" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+                    <i class="fas fa-edit mr-2"></i>
+                    Edit Work
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Supervisor</label>
+                        <p class="text-gray-900">{{ maintenance_work.supervisor_name }}</p>
+                        <p class="text-gray-600 text-sm">{{ maintenance_work.supervisor_phone }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Worker</label>
+                        <p class="text-gray-900">{{ maintenance_work.worker_name }}</p>
+                        <p class="text-gray-600 text-sm">{{ maintenance_work.worker_phone }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Work Status</label>
+                        <p class="text-gray-900 capitalize">{{ maintenance_work.get_work_status_display }}</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    {% if maintenance_work.start_time %}
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Start Time</label>
+                        <p class="text-gray-900">{{ maintenance_work.start_time|date:"M d, Y g:i A" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if maintenance_work.completion_time %}
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Completion Time</label>
+                        <p class="text-gray-900">{{ maintenance_work.completion_time|date:"M d, Y g:i A" }}</p>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Total Cost</label>
+                        <p class="text-gray-900 font-medium">₹{{ maintenance_work.total_cost }}</p>
+                        <p class="text-gray-600 text-sm">Product: ₹{{ maintenance_work.product_cost }} | Labor: ₹{{ maintenance_work.labor_charge }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if maintenance_work.work_description %}
+            <div class="mt-6">
+                <label class="text-sm font-medium text-gray-600">Work Description</label>
+                <p class="text-gray-900 mt-1">{{ maintenance_work.work_description }}</p>
+            </div>
+            {% endif %}
+            
+            {% if maintenance_work.parts_replaced %}
+            <div class="mt-4">
+                <label class="text-sm font-medium text-gray-600">Parts Replaced</label>
+                <p class="text-gray-900 mt-1">{{ maintenance_work.parts_replaced }}</p>
+            </div>
+            {% endif %}
+            
+            {% if maintenance_work.remarks %}
+            <div class="mt-4">
+                <label class="text-sm font-medium text-gray-600">Remarks</label>
+                <p class="text-gray-900 mt-1">{{ maintenance_work.remarks }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-between">
+        <a href="{% url 'maintenance:grievance_list' %}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors duration-200">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to List
+        </a>
+        
+        <div class="flex items-center space-x-3">
+            {% if user.user_type == 'admin' and grievance.status == 'pending' %}
+            <a href="{% url 'maintenance:assign_grievance' grievance.grievance_id %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                <i class="fas fa-user-plus mr-2"></i>
+                Assign Grievance
+            </a>
+            {% endif %}
+            
+            {% if not maintenance_work and grievance.status != 'pending' %}
+            <a href="{% url 'maintenance:create_maintenance_work' grievance.grievance_id %}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200">
+                <i class="fas fa-plus mr-2"></i>
+                Create Work Order
+            </a>
+            {% endif %}
+            
+            {% if maintenance_work %}
+            <a href="{% url 'maintenance:maintenance_work_detail' maintenance_work.work_id %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+                <i class="fas fa-eye mr-2"></i>
+                View Work Details
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

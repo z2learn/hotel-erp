@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grievance Details - Guest Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl font-bold text-blue-600">Hotel Guest Portal</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700">Welcome, {{ guest_name }}</span>
+                    <a href="{% url 'guest:guest_logout' %}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'guest:guest_dashboard' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-home mr-2"></i>Dashboard
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <span class="text-sm font-medium text-gray-500">Grievance #{{ grievance.id }}</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Grievance Header -->
+        <div class="bg-white shadow-xl rounded-lg mb-6">
+            <div class="bg-gradient-to-r from-gray-700 to-gray-800 px-6 py-4 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Grievance #{{ grievance.id }}</h2>
+                        <p class="text-gray-200 mt-1">{{ grievance.get_problem_type_display }}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full
+                            {% if grievance.priority == 'URGENT' %}bg-red-500 text-white
+                            {% elif grievance.priority == 'HIGH' %}bg-orange-500 text-white
+                            {% elif grievance.priority == 'MEDIUM' %}bg-yellow-500 text-white
+                            {% else %}bg-green-500 text-white{% endif %}">
+                            {{ grievance.get_priority_display }} Priority
+                        </span>
+                        <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full
+                            {% if grievance.status == 'PENDING' %}bg-yellow-500 text-white
+                            {% elif grievance.status == 'IN_PROGRESS' %}bg-blue-500 text-white
+                            {% elif grievance.status == 'COMPLETED' %}bg-green-500 text-white
+                            {% else %}bg-gray-500 text-white{% endif %}">
+                            {{ grievance.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Grievance Details -->
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Left Column -->
+                    <div class="space-y-6">
+                        <!-- Basic Information -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-info-circle text-blue-600 mr-2"></i>Basic Information
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-600">Room Number</p>
+                                    <p class="font-semibold text-gray-800">{{ booking.room.room_number }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Room Type</p>
+                                    <p class="font-semibold text-gray-800">{{ booking.room.get_room_type_display }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Submitted Date</p>
+                                    <p class="font-semibold text-gray-800">{{ grievance.created_at|date:"M d, Y H:i" }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Last Updated</p>
+                                    <p class="font-semibold text-gray-800">{{ grievance.updated_at|date:"M d, Y H:i" }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Problem Description -->
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-file-alt text-blue-600 mr-2"></i>Problem Description
+                            </h3>
+                            <div class="bg-white rounded-lg p-4 border border-blue-200">
+                                <p class="text-gray-800 leading-relaxed">{{ grievance.detailed_description }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Attachment -->
+                        {% if grievance.attachment %}
+                        <div class="bg-purple-50 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-paperclip text-purple-600 mr-2"></i>Attachment
+                            </h3>
+                            <div class="bg-white rounded-lg p-4 border border-purple-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-image text-purple-600 text-2xl mr-3"></i>
+                                        <div>
+                                            <p class="font-medium text-gray-800">Image Attachment</p>
+                                            <p class="text-sm text-gray-600">Click to view full size</p>
+                                        </div>
+                                    </div>
+                                    <a href="{{ grievance.attachment.url }}" target="_blank" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                                        <i class="fas fa-external-link-alt mr-2"></i>View
+                                    </a>
+                                </div>
+                                <div class="mt-4">
+                                    <img src="{{ grievance.attachment.url }}" alt="Grievance attachment" class="max-w-full h-48 object-cover rounded-lg border border-gray-200">
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-6">
+                        <!-- Status Timeline -->
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-history text-green-600 mr-2"></i>Status Timeline
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-3 h-3 bg-blue-600 rounded-full mt-2"></div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="font-medium text-gray-800">Grievance Submitted</p>
+                                        <p class="text-sm text-gray-600">{{ grievance.created_at|date:"M d, Y H:i" }}</p>
+                                        <p class="text-sm text-gray-500">Your issue has been logged and assigned a ticket number.</p>
+                                    </div>
+                                </div>
+                                
+                                {% if grievance.status != 'PENDING' %}
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-3 h-3 bg-yellow-600 rounded-full mt-2"></div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="font-medium text-gray-800">Under Review</p>
+                                        <p class="text-sm text-gray-600">{{ grievance.updated_at|date:"M d, Y H:i" }}</p>
+                                        <p class="text-sm text-gray-500">Our team is reviewing your issue and assigning appropriate staff.</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                {% if grievance.status == 'IN_PROGRESS' %}
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-3 h-3 bg-orange-600 rounded-full mt-2"></div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="font-medium text-gray-800">Work in Progress</p>
+                                        <p class="text-sm text-gray-600">{{ grievance.updated_at|date:"M d, Y H:i" }}</p>
+                                        <p class="text-sm text-gray-500">Our maintenance team is actively working on your issue.</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                {% if grievance.status == 'COMPLETED' %}
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-3 h-3 bg-green-600 rounded-full mt-2"></div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="font-medium text-gray-800">Issue Resolved</p>
+                                        <p class="text-sm text-gray-600">{{ grievance.updated_at|date:"M d, Y H:i" }}</p>
+                                        <p class="text-sm text-gray-500">Your issue has been successfully resolved.</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Maintenance Details -->
+                        {% if maintenance_ticket %}
+                        <div class="bg-orange-50 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-tools text-orange-600 mr-2"></i>Maintenance Details
+                            </h3>
+                            <div class="bg-white rounded-lg p-4 border border-orange-200">
+                                <div class="grid grid-cols-1 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-600">Ticket Status</p>
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                            {% if maintenance_ticket.status == 'OPEN' %}bg-red-100 text-red-800
+                                            {% elif maintenance_ticket.status == 'ASSIGNED' %}bg-yellow-100 text-yellow-800
+                                            {% elif maintenance_ticket.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-800
+                                            {% elif maintenance_ticket.status == 'COMPLETED' %}bg-green-100 text-green-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {{ maintenance_ticket.get_status_display }}
+                                        </span>
+                                    </div>
+                                    
+                                    {% if maintenance_ticket.worker_name %}
+                                    <div>
+                                        <p class="text-sm text-gray-600">Assigned Worker</p>
+                                        <p class="font-semibold text-gray-800">{{ maintenance_ticket.worker_name }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if maintenance_ticket.supervisor_name %}
+                                    <div>
+                                        <p class="text-sm text-gray-600">Supervisor</p>
+                                        <p class="font-semibold text-gray-800">{{ maintenance_ticket.supervisor_name }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if maintenance_ticket.estimated_cost %}
+                                    <div>
+                                        <p class="text-sm text-gray-600">Estimated Cost</p>
+                                        <p class="font-semibold text-gray-800">${{ maintenance_ticket.estimated_cost }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if maintenance_ticket.actual_cost %}
+                                    <div>
+                                        <p class="text-sm text-gray-600">Actual Cost</p>
+                                        <p class="font-semibold text-gray-800">${{ maintenance_ticket.actual_cost }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if maintenance_ticket.completed_at %}
+                                    <div>
+                                        <p class="text-sm text-gray-600">Completed At</p>
+                                        <p class="font-semibold text-gray-800">{{ maintenance_ticket.completed_at|date:"M d, Y H:i" }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if maintenance_ticket.notes %}
+                                    <div>
+                                        <p class="text-sm text-gray-600">Work Notes</p>
+                                        <div class="bg-gray-50 rounded p-3 mt-1">
+                                            <p class="text-gray-800">{{ maintenance_ticket.notes }}</p>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if maintenance_ticket.bill_invoice %}
+                                    <div>
+                                        <p class="text-sm text-gray-600">Invoice/Bill</p>
+                                        <a href="{{ maintenance_ticket.bill_invoice.url }}" target="_blank" class="inline-flex items-center mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                                            <i class="fas fa-file-invoice mr-2"></i>View Invoice
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div class="bg-gray-100 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                                <i class="fas fa-cogs text-gray-600 mr-2"></i>Actions
+                            </h3>
+                            <div class="space-y-3">
+                                <button onclick="refreshStatus()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center justify-center">
+                                    <i class="fas fa-sync-alt mr-2"></i>
+                                    Refresh Status
+                                </button>
+                                
+                                {% if grievance.status != 'COMPLETED' and grievance.status != 'CLOSED' %}
+                                <a href="{% url 'guest:create_grievance' %}" class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center justify-center">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Report Another Issue
+                                </a>
+                                {% endif %}
+
+                                <a href="{% url 'guest:guest_dashboard' %}" class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center justify-center">
+                                    <i class="fas fa-arrow-left mr-2"></i>
+                                    Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-blue-600 text-xl mr-3 mt-1"></i>
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-800 mb-2">Need Additional Help?</h3>
+                    <p class="text-blue-700 mb-4">If you have any questions about your grievance or need immediate assistance, please contact our front desk.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="flex items-center text-blue-700">
+                            <i class="fas fa-phone mr-2"></i>
+                            <span>Front Desk: (555) 123-4567</span>
+                        </div>
+                        <div class="flex items-center text-blue-700">
+                            <i class="fas fa-envelope mr-2"></i>
+                            <span>Email: support@hotel.com</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function refreshStatus() {
+            fetch("{% url 'guest:check_grievance_status' %}")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Auto-refresh every 60 seconds
+        setInterval(refreshStatus, 60000);
+    </script>
+</body>
+</html>

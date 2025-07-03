@@ -1,0 +1,209 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Dashboard - Maintenance System{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_description %}Overview of maintenance activities and statistics{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Pending Grievances</p>
+                <p class="text-3xl font-bold text-gray-900">{{ pending_grievances }}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-clock text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Assigned</p>
+                <p class="text-3xl font-bold text-gray-900">{{ assigned_grievances }}</p>
+            </div>
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-user-check text-yellow-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-orange-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">In Progress</p>
+                <p class="text-3xl font-bold text-gray-900">{{ in_progress_grievances }}</p>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-cogs text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Completed Today</p>
+                <p class="text-3xl font-bold text-gray-900">{{ completed_today }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Recent Grievances -->
+    <div class="bg-white rounded-xl shadow-sm">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Recent Grievances</h3>
+                <a href="{% url 'maintenance:grievance_list' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    View All <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="p-6">
+            {% if recent_grievances %}
+                <div class="space-y-4">
+                    {% for grievance in recent_grievances %}
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if grievance.priority == 'urgent' %}bg-red-100 text-red-800
+                                        {% elif grievance.priority == 'high' %}bg-orange-100 text-orange-800
+                                        {% elif grievance.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ grievance.get_priority_display }}
+                                    </span>
+                                    <span class="text-sm font-medium text-gray-900">{{ grievance.guest_name }}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">Room {{ grievance.room_number }} - {{ grievance.get_problem_type_display }}</p>
+                                <p class="text-xs text-gray-500 mt-1">{{ grievance.created_at|timesince }} ago</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if grievance.status == 'pending' %}bg-blue-100 text-blue-800
+                                    {% elif grievance.status == 'assigned' %}bg-yellow-100 text-yellow-800
+                                    {% elif grievance.status == 'in_progress' %}bg-orange-100 text-orange-800
+                                    {% elif grievance.status == 'completed' %}bg-green-100 text-green-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ grievance.get_status_display }}
+                                </span>
+                                <a href="{% url 'maintenance:grievance_detail' grievance.grievance_id %}" class="text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-clipboard-list text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-gray-500">No recent grievances</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- My Work (for maintenance staff) -->
+    {% if user.user_type == 'maintenance' %}
+    <div class="bg-white rounded-xl shadow-sm">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">My Work</h3>
+                <a href="{% url 'maintenance:my_work' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    View All <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="p-6">
+            {% if my_work %}
+                <div class="space-y-4">
+                    {% for grievance in my_work %}
+                        <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-sm font-medium text-gray-900">{{ grievance.guest_name }}</span>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if grievance.priority == 'urgent' %}bg-red-100 text-red-800
+                                        {% elif grievance.priority == 'high' %}bg-orange-100 text-orange-800
+                                        {% elif grievance.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ grievance.get_priority_display }}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">Room {{ grievance.room_number }} - {{ grievance.get_problem_type_display }}</p>
+                                <p class="text-xs text-gray-500 mt-1">Assigned {{ grievance.updated_at|timesince }} ago</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if grievance.status == 'assigned' %}bg-yellow-100 text-yellow-800
+                                    {% elif grievance.status == 'in_progress' %}bg-orange-100 text-orange-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ grievance.get_status_display }}
+                                </span>
+                                <a href="{% url 'maintenance:grievance_detail' grievance.grievance_id %}" class="text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-tasks text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-gray-500">No work assigned</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Quick Actions for Admin -->
+    <div class="bg-white rounded-xl shadow-sm">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                <a href="{% url 'maintenance:grievance_list' %}?status=pending" class="flex items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg hover:from-blue-100 hover:to-blue-200 transition-all duration-200">
+                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-clipboard-list text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">View Pending Grievances</p>
+                        <p class="text-sm text-gray-600">Review and assign pending requests</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'maintenance:grievance_list' %}?status=in_progress" class="flex items-center p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg hover:from-orange-100 hover:to-orange-200 transition-all duration-200">
+                    <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-cogs text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Monitor Progress</p>
+                        <p class="text-sm text-gray-600">Track ongoing maintenance work</p>
+                    </div>
+                </a>
+                
+                <div class="flex items-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
+                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-chart-bar text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Generate Reports</p>
+                        <p class="text-sm text-gray-600">View maintenance statistics</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

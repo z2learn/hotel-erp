@@ -1,0 +1,325 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Edit Maintenance Work - {{ maintenance_work.work_id }}{% endblock %}
+
+{% block page_title %}Edit Maintenance Work{% endblock %}
+{% block page_description %}Update maintenance work details for Grievance #{{ grievance.grievance_id }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Work Order #{{ maintenance_work.work_id }}</h3>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Related to Grievance #{{ grievance.grievance_id }} - {{ grievance.guest_name }}
+                    </p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="px-3 py-1 text-xs font-medium rounded-full
+                        {% if maintenance_work.work_status == 'completed' %}bg-green-100 text-green-800
+                        {% elif maintenance_work.work_status == 'in_progress' %}bg-blue-100 text-blue-800
+                        {% elif maintenance_work.work_status == 'on_hold' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ maintenance_work.get_work_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Info -->
+        <div class="px-6 py-4 bg-gray-50">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-600">Room:</span>
+                    <span class="font-medium text-gray-900 ml-2">{{ grievance.room_number }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-600">Problem Type:</span>
+                    <span class="font-medium text-gray-900 ml-2">{{ grievance.get_problem_type_display }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-600">Priority:</span>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full ml-2
+                        {% if grievance.priority == 'urgent' %}bg-red-100 text-red-800
+                        {% elif grievance.priority == 'high' %}bg-orange-100 text-orange-800
+                        {% elif grievance.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-green-100 text-green-800{% endif %}">
+                        {{ grievance.get_priority_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h4 class="text-lg font-medium text-gray-900">Update Work Details</h4>
+            <p class="text-sm text-gray-600 mt-1">Modify the maintenance work information and status</p>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="p-6">
+            {% csrf_token %}
+            
+            <!-- Staff Information -->
+            <div class="mb-8">
+                <h5 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-users text-blue-600 mr-2"></i>
+                    Staff Information
+                </h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supervisor Name</label>
+                        {{ form.supervisor_name }}
+                        {% if form.supervisor_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.supervisor_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supervisor Phone</label>
+                        {{ form.supervisor_phone }}
+                        {% if form.supervisor_phone.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.supervisor_phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Worker Name</label>
+                        {{ form.worker_name }}
+                        {% if form.worker_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.worker_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Worker Phone</label>
+                        {{ form.worker_phone }}
+                        {% if form.worker_phone.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.worker_phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Details -->
+            <div class="mb-8">
+                <h5 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-clipboard-list text-blue-600 mr-2"></i>
+                    Work Details
+                </h5>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Work Description</label>
+                        {{ form.work_description }}
+                        {% if form.work_description.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.work_description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Parts Replaced/Fixed</label>
+                        {{ form.parts_replaced }}
+                        {% if form.parts_replaced.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.parts_replaced.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
+                        {{ form.remarks }}
+                        {% if form.remarks.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.remarks.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Information -->
+            <div class="mb-8">
+                <h5 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-calculator text-blue-600 mr-2"></i>
+                    Cost Information
+                </h5>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+                        {{ form.product_name }}
+                        {% if form.product_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.product_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Product Cost ($)</label>
+                        {{ form.product_cost }}
+                        {% if form.product_cost.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.product_cost.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Labor Charge ($)</label>
+                        {{ form.labor_charge }}
+                        {% if form.labor_charge.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.labor_charge.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Total Cost Display -->
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Current Total Cost:</span>
+                        <span class="text-lg font-bold text-blue-600">${{ maintenance_work.total_cost }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status and Timeline -->
+            <div class="mb-8">
+                <h5 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-clock text-blue-600 mr-2"></i>
+                    Status & Timeline
+                </h5>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Work Status</label>
+                        {{ form.work_status }}
+                        {% if form.work_status.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.work_status.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+                        {{ form.start_time }}
+                        {% if form.start_time.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.start_time.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Completion Time</label>
+                        {{ form.completion_time }}
+                        {% if form.completion_time.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.completion_time.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Upload -->
+            <div class="mb-8">
+                <h5 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-file-invoice text-blue-600 mr-2"></i>
+                    Invoice/Receipt
+                </h5>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Invoice Image</label>
+                    {{ form.invoice_image }}
+                    {% if form.invoice_image.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.invoice_image.errors.0 }}</p>
+                    {% endif %}
+                    {% if maintenance_work.invoice_image %}
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-600">Current invoice:</p>
+                            <img src="{{ maintenance_work.invoice_image.url }}" alt="Invoice" class="mt-1 h-32 w-auto border border-gray-300 rounded-lg">
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+                        <div class="text-sm text-red-700">
+                            {{ form.non_field_errors.0 }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                <a href="{% url 'maintenance:maintenance_work_detail' work_id=maintenance_work.work_id %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back to Details
+                </a>
+                
+                <div class="flex items-center space-x-3">
+                    <button type="button" onclick="resetForm()" 
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-undo mr-2"></i>
+                        Reset Changes
+                    </button>
+                    
+                    <button type="submit" 
+                            class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                        <i class="fas fa-save mr-2"></i>
+                        Update Work Order
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Auto-calculate total cost
+document.addEventListener('DOMContentLoaded', function() {
+    const productCostInput = document.querySelector('input[name="product_cost"]');
+    const laborChargeInput = document.querySelector('input[name="labor_charge"]');
+    
+    function updateTotalCost() {
+        const productCost = parseFloat(productCostInput.value) || 0;
+        const laborCharge = parseFloat(laborChargeInput.value) || 0;
+        const total = productCost + laborCharge;
+        
+        // Update the display
+        const totalDisplay = document.querySelector('.text-blue-600');
+        if (totalDisplay) {
+            totalDisplay.textContent = '$' + total.toFixed(2);
+        }
+    }
+    
+    if (productCostInput && laborChargeInput) {
+        productCostInput.addEventListener('input', updateTotalCost);
+        laborChargeInput.addEventListener('input', updateTotalCost);
+    }
+    
+    // Status change handling
+    const statusSelect = document.querySelector('select[name="work_status"]');
+    const completionTimeInput = document.querySelector('input[name="completion_time"]');
+    
+    if (statusSelect && completionTimeInput) {
+        statusSelect.addEventListener('change', function() {
+            if (this.value === 'completed' && !completionTimeInput.value) {
+                // Auto-fill current time when marking as completed
+                const now = new Date();
+                const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                completionTimeInput.value = localDateTime;
+            }
+        });
+    }
+});
+
+// Reset form function
+function resetForm() {
+    if (confirm('Are you sure you want to reset all changes? This will restore the original values.')) {
+        document.querySelector('form').reset();
+        // Reload to restore original values
+        location.reload();
+    }
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const workStatus = document.querySelector('select[name="work_status"]').value;
+    const completionTime = document.querySelector('input[name="completion_time"]').value;
+    
+    if (workStatus === 'completed' && !completionTime) {
+        e.preventDefault();
+        alert('Completion time is required when marking work as completed.');
+        return false;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Manage Workers - Hotel Admin{% endblock %}
+{% block page_title %}Maintenance Workers{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Current Workers</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Employee ID</th>
+                                <th>Specialization</th>
+                                <th>Experience</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for worker in workers %}
+                            <tr>
+                                <td>{{ worker.get_full_name|default:worker.username }}</td>
+                                <td>{{ worker.workerprofile.employee_id }}</td>
+                                <td>{{ worker.workerprofile.specialization }}</td>
+                                <td>{{ worker.workerprofile.experience_years }} years</td>
+                                <td>{{ worker.phone_number }}</td>
+                                <td>
+                                    {% if worker.workerprofile.is_available %}
+                                        <span class="badge bg-success">Available</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Busy</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No workers found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Add New Worker</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        {{ form.username }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label">First Name</label>
+                                {{ form.first_name }}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label">Last Name</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number</label>
+                        {{ form.phone_number }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Employee ID</label>
+                        {{ form.employee_id }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Specialization</label>
+                        {{ form.specialization }}
+                        <div class="form-text">{{ form.specialization.help_text }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Experience (Years)</label>
+                        {{ form.experience_years }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        {{ form.password1 }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password</label>
+                        {{ form.password2 }}
+                    </div>
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus"></i> Add Worker
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

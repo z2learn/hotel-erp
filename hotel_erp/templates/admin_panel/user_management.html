@@ -1,0 +1,98 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}User Management - Hotel Admin{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="btn-group" role="group">
+            <a href="?role=" class="btn btn-outline-primary {% if not role_filter %}active{% endif %}">All Users</a>
+            {% for role_code, role_name in roles %}
+                <a href="?role={{ role_code }}" class="btn btn-outline-primary {% if role_filter == role_code %}active{% endif %}">
+                    {{ role_name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            System Users
+            {% if role_filter %}
+                - {{ role_filter|title }}
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_obj in users %}
+                    <tr>
+                        <td>{{ user_obj.username }}</td>
+                        <td>{{ user_obj.get_full_name|default:"-" }}</td>
+                        <td>{{ user_obj.email }}</td>
+                        <td>
+                            <span class="badge bg-{% if user_obj.role == 'ADMIN' %}danger{% elif user_obj.role == 'RECEPTION' %}primary{% elif user_obj.role == 'MAINTENANCE' %}warning{% else %}success{% endif %}">
+                                {{ user_obj.get_role_display }}
+                            </span>
+                        </td>
+                        <td>{{ user_obj.phone_number|default:"-" }}</td>
+                        <td>
+                            {% if user_obj.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                            {% if user_obj.is_temporary %}
+                                <span class="badge bg-info">Temporary</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user_obj.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                {% if user_obj.is_active %}
+                                    <form method="post" action="{% url 'admin_panel:deactivate_user' user_obj.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                onclick="return confirm('Are you sure you want to deactivate this user?')">
+                                            <i class="fas fa-user-slash"></i>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{% url 'admin_panel:activate_user' user_obj.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-user-check"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">No users found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

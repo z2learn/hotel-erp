@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block title %}Reception Dashboard - Hotel Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-tachometer-alt me-3"></i>Reception Dashboard
+        </h1>
+        <p class="text-muted">Welcome back! Here's your hotel overview for today.</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="stats-number">{{ check_ins_today }}</div>
+            <div class="stats-label">
+                <i class="fas fa-sign-in-alt me-2"></i>Check-ins Today
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="stats-number">{{ check_outs_today }}</div>
+            <div class="stats-label">
+                <i class="fas fa-sign-out-alt me-2"></i>Check-outs Today
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="stats-number">{{ available_rooms }}</div>
+            <div class="stats-label">
+                <i class="fas fa-bed me-2"></i>Available Rooms
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <div class="stats-number">{{ occupied_rooms }}</div>
+            <div class="stats-label">
+                <i class="fas fa-users me-2"></i>Occupied Rooms
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="{% url 'create_booking' %}" class="btn btn-primary w-100 btn-lg">
+                            <i class="fas fa-plus-circle me-2"></i>New Booking
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="{% url 'view_bookings' %}" class="btn btn-success w-100 btn-lg">
+                            <i class="fas fa-list me-2"></i>View Bookings
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="{% url 'search_bookings' %}" class="btn btn-warning w-100 btn-lg">
+                            <i class="fas fa-search me-2"></i>Search Bookings
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <button class="btn btn-info w-100 btn-lg" onclick="refreshDashboard()">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room Status Overview -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-door-open me-2"></i>Room Status Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="mb-3">
+                            <div class="display-6 text-primary">{{ total_rooms }}</div>
+                            <small class="text-muted">Total Rooms</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="mb-3">
+                            <div class="display-6 text-success">{{ available_rooms }}</div>
+                            <small class="text-muted">Available</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="mb-3">
+                            <div class="display-6 text-warning">{{ occupied_rooms }}</div>
+                            <small class="text-muted">Occupied</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 20px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {% if total_rooms %}{% widthratio available_rooms total_rooms 100 %}{% else %}0{% endif %}%;">
+                        Available
+                    </div>
+                    <div class="progress-bar bg-warning" role="progressbar" 
+                         style="width: {% if total_rooms %}{% widthratio occupied_rooms total_rooms 100 %}{% else %}0{% endif %}%;">
+                        Occupied
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>Today's Schedule
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item mb-3 d-flex align-items-center">
+                        <div class="bg-primary rounded-circle p-2 me-3">
+                            <i class="fas fa-sign-in-alt text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Check-ins Today</h6>
+                            <p class="text-muted mb-0">{{ check_ins_today }} guest(s) arriving</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item mb-3 d-flex align-items-center">
+                        <div class="bg-warning rounded-circle p-2 me-3">
+                            <i class="fas fa-sign-out-alt text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Check-outs Today</h6>
+                            <p class="text-muted mb-0">{{ check_outs_today }} guest(s) departing</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshDashboard() {
+    const refreshBtn = document.querySelector('[onclick="refreshDashboard()"]');
+    const originalText = refreshBtn.innerHTML;
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+    refreshBtn.disabled = true;
+    
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+// Auto-refresh every 5 minutes
+setInterval(() => {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

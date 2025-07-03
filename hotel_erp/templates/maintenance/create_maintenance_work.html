@@ -1,0 +1,277 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Create Maintenance Work{% endblock %}
+
+{% block page_title %}Create Maintenance Work{% endblock %}
+
+{% block page_description %}Create new maintenance work for grievance #{{ grievance.grievance_id }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Grievance Information Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                Grievance Details
+            </h3>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Grievance ID</label>
+                    <p class="text-sm text-gray-900">#{{ grievance.grievance_id }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Guest Name</label>
+                    <p class="text-sm text-gray-900">{{ grievance.guest_name }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Room Number</label>
+                    <p class="text-sm text-gray-900">{{ grievance.room_number }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Problem Type</label>
+                    <p class="text-sm text-gray-900">{{ grievance.get_problem_type_display }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Priority</label>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if grievance.priority == 'urgent' %}bg-red-100 text-red-800
+                        {% elif grievance.priority == 'high' %}bg-orange-100 text-orange-800
+                        {% elif grievance.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-green-100 text-green-800{% endif %}">
+                        {{ grievance.get_priority_display }}
+                    </span>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Status</label>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ grievance.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="text-sm font-medium text-gray-500">Description</label>
+                <p class="text-sm text-gray-900 mt-1">{{ grievance.description }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Work Form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                <i class="fas fa-wrench text-blue-500 mr-2"></i>
+                Maintenance Work Details
+            </h3>
+        </div>
+        <div class="px-6 py-6">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Supervisor and Worker Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="text-md font-medium text-gray-900 pb-2 border-b border-gray-200">Supervisor Information</h4>
+                        <div>
+                            <label for="{{ form.supervisor_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Supervisor Name *
+                            </label>
+                            {{ form.supervisor_name }}
+                            {% if form.supervisor_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.supervisor_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.supervisor_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Supervisor Phone *
+                            </label>
+                            {{ form.supervisor_phone }}
+                            {% if form.supervisor_phone.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.supervisor_phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h4 class="text-md font-medium text-gray-900 pb-2 border-b border-gray-200">Worker Information</h4>
+                        <div>
+                            <label for="{{ form.worker_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Worker Name *
+                            </label>
+                            {{ form.worker_name }}
+                            {% if form.worker_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.worker_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.worker_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Worker Phone *
+                            </label>
+                            {{ form.worker_phone }}
+                            {% if form.worker_phone.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.worker_phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Work Description -->
+                <div>
+                    <label for="{{ form.work_description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Work Description *
+                    </label>
+                    {{ form.work_description }}
+                    {% if form.work_description.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.work_description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Parts and Products -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.parts_replaced.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Parts Replaced/Fixed
+                        </label>
+                        {{ form.parts_replaced }}
+                        {% if form.parts_replaced.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.parts_replaced.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.product_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Product Name
+                        </label>
+                        {{ form.product_name }}
+                        {% if form.product_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.product_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Cost Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.product_cost.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Product Cost (₹)
+                        </label>
+                        {{ form.product_cost }}
+                        {% if form.product_cost.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.product_cost.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.labor_charge.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Labor Charge (₹)
+                        </label>
+                        {{ form.labor_charge }}
+                        {% if form.labor_charge.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.labor_charge.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Invoice and Status -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.invoice_image.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Invoice Image
+                        </label>
+                        {{ form.invoice_image }}
+                        {% if form.invoice_image.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.invoice_image.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.work_status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Work Status *
+                        </label>
+                        {{ form.work_status }}
+                        {% if form.work_status.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.work_status.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Time Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.start_time.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Start Time
+                        </label>
+                        {{ form.start_time }}
+                        {% if form.start_time.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.start_time.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.completion_time.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Completion Time
+                        </label>
+                        {{ form.completion_time }}
+                        {% if form.completion_time.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.completion_time.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Remarks -->
+                <div>
+                    <label for="{{ form.remarks.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Remarks
+                    </label>
+                    {{ form.remarks }}
+                    {% if form.remarks.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.remarks.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                        {% for error in form.non_field_errors %}
+                            <p class="text-sm text-red-600">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'maintenance:grievance_detail' grievance.grievance_id %}" 
+                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Create Work Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-calculate total cost
+document.addEventListener('DOMContentLoaded', function() {
+    const productCostInput = document.querySelector('#id_product_cost');
+    const laborChargeInput = document.querySelector('#id_labor_charge');
+    
+    function calculateTotal() {
+        const productCost = parseFloat(productCostInput.value) || 0;
+        const laborCharge = parseFloat(laborChargeInput.value) || 0;
+        const total = productCost + laborCharge;
+        
+        // You can display the total somewhere if needed
+        console.log('Total Cost: ₹' + total.toFixed(2));
+    }
+    
+    if (productCostInput && laborChargeInput) {
+        productCostInput.addEventListener('input', calculateTotal);
+        laborChargeInput.addEventListener('input', calculateTotal);
+    }
+});
+</script>
+{% endblock %}

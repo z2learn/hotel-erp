@@ -1,0 +1,154 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Dashboard - Hotel Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Total Bookings</h6>
+                        <h2 class="card-title">{{ total_bookings }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Active Bookings</h6>
+                        <h2 class="card-title">{{ active_bookings }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-bed fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Available Rooms</h6>
+                        <h2 class="card-title">{{ available_rooms }}/{{ total_rooms }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-door-open fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Pending Grievances</h6>
+                        <h2 class="card-title">{{ pending_grievances }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Bookings -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Bookings</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_bookings %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Guest</th>
+                                    <th>Room</th>
+                                    <th>Check-in</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in recent_bookings %}
+                                <tr>
+                                    <td>{{ booking.guest_name }}</td>
+                                    <td>{{ booking.room.room_number }}</td>
+                                    <td>{{ booking.check_in_date }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if booking.status == 'ACTIVE' %}success{% elif booking.status == 'COMPLETED' %}secondary{% else %}warning{% endif %}">
+                                            {{ booking.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No recent bookings</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Grievances -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Grievances</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_grievances %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Guest</th>
+                                    <th>Problem</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grievance in recent_grievances %}
+                                <tr>
+                                    <td>{{ grievance.guest.get_full_name|default:grievance.guest.username }}</td>
+                                    <td>{{ grievance.get_problem_type_display }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if grievance.status == 'PENDING' %}warning{% elif grievance.status == 'IN_PROGRESS' %}info{% elif grievance.status == 'COMPLETED' %}success{% else %}secondary{% endif %}">
+                                            {{ grievance.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ grievance.created_at|date:"M d" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No recent grievances</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

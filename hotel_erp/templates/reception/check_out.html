@@ -1,0 +1,373 @@
+<!-- templates/reception/checkout.html -->
+{% extends 'base.html' %}
+{% block title %}Check-out Guest - Hotel Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'reception_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'view_bookings' %}">Bookings</a></li>
+                <li class="breadcrumb-item active">Check-out</li>
+            </ol>
+        </nav>
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-sign-out-alt me-3"></i>Guest Check-out
+        </h1>
+        <p class="text-muted">Process guest departure and finalize billing</p>
+    </div>
+</div>
+
+{% if booking %}
+<div class="row">
+    <!-- Guest Information -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>Guest Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Guest Name:</strong></div>
+                    <div class="col-8">{{ booking.guest_name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Email:</strong></div>
+                    <div class="col-8">{{ booking.guest_email }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Phone:</strong></div>
+                    <div class="col-8">{{ booking.guest_phone }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Booking ID:</strong></div>
+                    <div class="col-8">
+                        <span class="badge bg-primary">{{ booking.booking_id }}</span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Status:</strong></div>
+                    <div class="col-8">
+                        {% if booking.status == 'checked_in' %}
+                            <span class="badge bg-success">Checked In</span>
+                        {% elif booking.status == 'confirmed' %}
+                            <span class="badge bg-warning">Confirmed</span>
+                        {% elif booking.status == 'checked_out' %}
+                            <span class="badge bg-secondary">Checked Out</span>
+                        {% else %}
+                            <span class="badge bg-info">{{ booking.status|title }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room & Stay Information -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bed me-2"></i>Room & Stay Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Room Number:</strong></div>
+                    <div class="col-8">
+                        <span class="badge bg-info">{{ booking.room.room_number }}</span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Room Type:</strong></div>
+                    <div class="col-8">{{ booking.room.room_type|title }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Check-in Date:</strong></div>
+                    <div class="col-8">{{ booking.check_in_date|date:"F d, Y" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Check-out Date:</strong></div>
+                    <div class="col-8">{{ booking.check_out_date|date:"F d, Y" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Total Nights:</strong></div>
+                    <div class="col-8">{{ booking.calculate_total_nights }} night(s)</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Guests:</strong></div>
+                    <div class="col-8">{{ booking.number_of_guests }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Billing Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-receipt me-2"></i>Billing Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Room Rate (per night):</strong></td>
+                                    <td class="text-end">${{ booking.room.price_per_night }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Number of Nights:</strong></td>
+                                    <td class="text-end">{{ booking.calculate_total_nights }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Subtotal:</strong></td>
+                                    <td class="text-end">${{ booking.total_amount }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Advance Payment:</strong></td>
+                                    <td class="text-end text-success">-${{ booking.advance_payment }}</td>
+                                </tr>
+                                <tr class="table-active">
+                                    <td><strong>Balance Due:</strong></td>
+                                    <td class="text-end">
+                                        <strong>${{ booking.total_amount|add:booking.advance_payment|floatformat:2 }}</strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle me-2"></i>Payment Summary
+                            </h6>
+                            <p class="mb-0">Total Amount: <strong>${{ booking.total_amount }}</strong></p>
+                            <p class="mb-0">Paid: <strong>${{ booking.advance_payment }}</strong></p>
+                            <hr>
+                            <p class="mb-0">Remaining: <strong>${{ booking.total_amount|add:booking.advance_payment|floatformat:2 }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Special Requests & Notes -->
+{% if booking.special_requests %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-sticky-note me-2"></i>Special Requests & Notes
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ booking.special_requests }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Checkout Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tasks me-2"></i>Check-out Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if booking.status == 'checked_in' %}
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Ready for Check-out
+                        </h6>
+                        <p class="mb-3">Please confirm the following before proceeding:</p>
+                        <ul class="mb-3">
+                            <li>Room has been inspected and is in good condition</li>
+                            <li>All outstanding payments have been collected</li>
+                            <li>Guest has returned all room keys/cards</li>
+                            <li>Any incidental charges have been added to the bill</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post" action="{% url 'check_out' booking.booking_id %}" id="checkoutForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="checkout_notes" class="form-label">Checkout Notes (Optional)</label>
+                            <textarea class="form-control" id="checkout_notes" name="checkout_notes" rows="3" 
+                                      placeholder="Any additional notes about the checkout process..."></textarea>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirm_room_condition" required>
+                            <label class="form-check-label" for="confirm_room_condition">
+                                I confirm the room has been inspected and is in acceptable condition
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirm_payment" required>
+                            <label class="form-check-label" for="confirm_payment">
+                                I confirm all payments have been processed
+                            </label>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success btn-lg" id="confirmCheckout">
+                                <i class="fas fa-check me-2"></i>Complete Check-out
+                            </button>
+                            <a href="{% url 'view_bookings' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Bookings
+                            </a>
+                        </div>
+                    </form>
+                {% elif booking.status == 'checked_out' %}
+                    <div class="alert alert-success">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-check-circle me-2"></i>Already Checked Out
+                        </h6>
+                        <p class="mb-0">This guest has already been checked out on {{ booking.updated_at|date:"F d, Y \a\t g:i A" }}.</p>
+                    </div>
+                    <a href="{% url 'view_bookings' %}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Bookings
+                    </a>
+                {% else %}
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-times-circle me-2"></i>Cannot Check Out
+                        </h6>
+                        <p class="mb-0">This booking is not in a valid state for checkout. Current status: {{ booking.status|title }}</p>
+                    </div>
+                    <a href="{% url 'view_bookings' %}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Bookings
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Booking Not Found -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle display-1 text-warning mb-3"></i>
+                <h3>Booking Not Found</h3>
+                <p class="text-muted">The booking you're looking for doesn't exist or has been removed.</p>
+                <a href="{% url 'view_bookings' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Bookings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkoutForm = document.getElementById('checkoutForm');
+    const confirmBtn = document.getElementById('confirmCheckout');
+    
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show confirmation dialog
+            if (confirm('Are you sure you want to complete the check-out process? This action cannot be undone.')) {
+                // Show loading state
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                confirmBtn.disabled = true;
+                
+                // Submit form after brief delay for UX
+                setTimeout(() => {
+                    checkoutForm.submit();
+                }, 1000);
+            }
+        });
+    }
+    
+    // Auto-calculate balance due
+    function calculateBalance() {
+        const totalAmount = parseFloat('{{ booking.total_amount|default:0 }}');
+        const advancePayment = parseFloat('{{ booking.advance_payment|default:0 }}');
+        const balance = totalAmount - advancePayment;
+        
+        // Update display if elements exist
+        const balanceElement = document.querySelector('.balance-due');
+        if (balanceElement) {
+            balanceElement.textContent = '$' + balance.toFixed(2);
+        }
+    }
+    
+    calculateBalance();
+});
+
+// Print receipt function
+function printReceipt() {
+    window.print();
+}
+
+// Export to PDF function (placeholder)
+function exportToPDF() {
+    alert('PDF export functionality would be implemented here');
+}
+</script>
+
+<style>
+@media print {
+    .btn, .breadcrumb, .card-header {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    body {
+        background: white !important;
+    }
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.alert-heading {
+    margin-bottom: 10px;
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+}
+</style>
+{% endblock %}

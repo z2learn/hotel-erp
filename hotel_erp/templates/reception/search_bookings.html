@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}Search Bookings - Hotel Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-search me-3"></i>Search Bookings
+        </h1>
+        <p class="text-muted">Find bookings by guest name, email, phone, booking ID, or room number.</p>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>Search Filters
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-8">
+                        <label for="search-input" class="form-label">Search Term</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="search-input"
+                                   name="q" 
+                                   value="{{ query }}" 
+                                   placeholder="Enter guest name, email, phone, booking ID, or room number...">
+                        </div>
+                        <small class="form-text text-muted">
+                            Search across: Guest Name, Email, Phone, Booking ID, Room Number
+                        </small>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="w-100">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                            <a href="{% url 'search_bookings' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Results -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Search Results
+                    {% if query %}
+                        <span class="badge bg-primary ms-2">{{ bookings|length }} result(s) for "{{ query }}"</span>
+                    {% else %}
+                        <span class="badge bg-secondary ms-2">{{ bookings|length }} total booking(s)</span>
+                    {% endif %}
+                </h5>
+                <div>
+                    <a href="{% url 'create_booking' %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus me-1"></i>New Booking
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if bookings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Guest Name</th>
+                                    <th>Contact</th>
+                                    <th>Room</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                <tr>
+                                    <td>
+                                        <code>{{ booking.booking_id|truncatechars:13 }}</code>
+                                    </td>
+                                    <td>
+                                        <strong>{{ booking.guest_name }}</strong><br>
+                                        <small class="text-muted">{{ booking.number_of_guests }} guest(s)</small>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            <i class="fas fa-envelope me-1"></i>{{ booking.guest_email }}<br>
+                                            <i class="fas fa-phone me-1"></i>{{ booking.guest_phone }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ booking.room.room_number }}</span><br>
+                                        <small class="text-muted">{{ booking.room.room_type|capfirst }}</small>
+                                    </td>
+                                    <td>{{ booking.check_in_date|date:"M d, Y" }}</td>
+                                    <td>{{ booking.check_out_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if booking.status == 'confirmed' %}
+                                            <span class="badge bg-warning">Confirmed</span>
+                                        {% elif booking.status == 'checked_in' %}
+                                            <span class="badge bg-success">Checked In</span>
+                                        {% elif booking.status == 'checked_out' %}
+                                            <span class="badge bg-secondary">Checked Out</span>
+                                        {% elif booking.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>${{ booking.total_amount }}</strong><br>
+                                        <small class="text-muted">Paid: ${{ booking.advance_payment }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            {% if booking.status == 'confirmed' %}
+                                                <a href="{% url 'check_in' booking.booking_id %}" 
+                                                   class="btn btn-success btn-sm"
+                                                   onclick="return confirm('Confirm check-in for {{ booking.guest_name }}?')">
+                                                    <i class="fas fa-sign-in-alt me-1"></i>Check-in
+                                                </a>
+                                            {% elif booking.status == 'checked_in' %}
+                                                <a href="{% url 'check_out' booking.booking_id %}" 
+                                                   class="btn btn-warning btn-sm"
+                                                   onclick="return confirm('Confirm check-out for {{ booking.guest_name }}?')">
+                                                    <i class="fas fa-sign-out-alt me-1"></i>Check-out
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No bookings found</h5>
+                        {% if query %}
+                            <p class="text-muted">No bookings match your search criteria "{{ query }}".</p>
+                            <a href="{% url 'search_bookings' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left me-2"></i>View All Bookings
+                            </a>
+                        {% else %}
+                            <p class="text-muted">No bookings have been made yet.</p>
+                            <a href="{% url 'create_booking' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Create First Booking
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.focus();
+    }
+});
+</script>
+{% endblock %}

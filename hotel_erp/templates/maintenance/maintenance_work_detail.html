@@ -1,0 +1,425 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Work Details - {{ maintenance_work.work_id }}{% endblock %}
+
+{% block page_title %}Work Order #{{ maintenance_work.work_id }}{% endblock %}
+{% block page_description %}Maintenance work details and status management{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<div class="max-w-7xl mx-auto">
+    <!-- Work Overview Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Work Order Details</h3>
+                    <p class="text-sm text-gray-600 mt-1">Created on {{ maintenance_work.created_at|date:"M d, Y" }} at {{ maintenance_work.created_at|time:"H:i" }}</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span id="workStatus" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                        {% if maintenance_work.work_status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif maintenance_work.work_status == 'in_progress' %}bg-blue-100 text-blue-800
+                        {% elif maintenance_work.work_status == 'completed' %}bg-green-100 text-green-800
+                        {% elif maintenance_work.work_status == 'on_hold' %}bg-gray-100 text-gray-800
+                        {% endif %}">
+                        <i class="fas fa-circle mr-2 text-xs"></i>
+                        {{ maintenance_work.get_work_status_display }}
+                    </span>
+                    
+                    {% if user.user_type == 'admin' or maintenance_work.grievance.assigned_to == user %}
+                    <button onclick="openStatusModal({{ maintenance_work.work_id }}, '{{ maintenance_work.get_work_status_display }}')" 
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
+                        <i class="fas fa-edit mr-2"></i>
+                        Update Status
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Related Grievance -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Related Grievance</h4>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-900">Grievance #{{ grievance.grievance_id }}</span>
+                                <span id="grievanceStatus" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                    {% if grievance.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif grievance.status == 'assigned' %}bg-purple-100 text-purple-800
+                                    {% elif grievance.status == 'in_progress' %}bg-blue-100 text-blue-800
+                                    {% elif grievance.status == 'completed' %}bg-green-100 text-green-800
+                                    {% endif %}">
+                                    {{ grievance.get_status_display }}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">{{ grievance.guest_name }} - Room {{ grievance.room_number }}</p>
+                            <p class="text-sm text-gray-700">{{ grievance.description|truncatewords:20 }}</p>
+                            <a href="{% url 'maintenance:grievance_detail' grievance.grievance_id %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 inline-block">
+                                View Full Grievance →
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Work Team -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Work Team</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user-tie text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">{{ maintenance_work.supervisor_name }}</p>
+                                    <p class="text-xs text-gray-600">Supervisor • {{ maintenance_work.supervisor_phone }}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-tools text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">{{ maintenance_work.worker_name }}</p>
+                                    <p class="text-xs text-gray-600">Worker • {{ maintenance_work.worker_phone }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Timeline</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Work Created</p>
+                                    <p class="text-xs text-gray-600">{{ maintenance_work.created_at|date:"M d, Y H:i" }}</p>
+                                </div>
+                            </div>
+                            {% if maintenance_work.start_time %}
+                            <div class="flex items-center space-x-3">
+                                <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Work Started</p>
+                                    <p class="text-xs text-gray-600">{{ maintenance_work.start_time|date:"M d, Y H:i" }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if maintenance_work.completion_time %}
+                            <div class="flex items-center space-x-3">
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Work Completed</p>
+                                    <p class="text-xs text-gray-600">{{ maintenance_work.completion_time|date:"M d, Y H:i" }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Work Description -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Work Description</h4>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ maintenance_work.work_description }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Parts & Materials -->
+                    {% if maintenance_work.parts_replaced %}
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Parts Replaced</h4>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ maintenance_work.parts_replaced }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Cost Breakdown -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Cost Breakdown</h4>
+                        <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                            {% if maintenance_work.product_name %}
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">{{ maintenance_work.product_name }}</span>
+                                <span class="text-sm font-medium text-gray-900">₹{{ maintenance_work.product_cost }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Labor Charges</span>
+                                <span class="text-sm font-medium text-gray-900">₹{{ maintenance_work.labor_charge }}</span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-2 mt-2">
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-900">Total Cost</span>
+                                    <span class="text-sm font-bold text-gray-900">₹{{ maintenance_work.total_cost }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Invoice -->
+                    {% if maintenance_work.invoice_image %}
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Invoice</h4>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <img src="{{ maintenance_work.invoice_image.url }}" alt="Invoice" class="max-w-full h-auto rounded-lg border border-gray-200">
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Remarks -->
+                    {% if maintenance_work.remarks %}
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Additional Remarks</h4>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ maintenance_work.remarks }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex justify-between items-center">
+        <a href="{% url 'maintenance:grievance_list' %}" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors duration-200">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Grievances
+        </a>
+        
+        <div class="flex space-x-3">
+            {% if user.user_type == 'admin' or maintenance_work.grievance.assigned_to == user %}
+            <a href="{% url 'maintenance:edit_maintenance_work' maintenance_work.work_id %}" class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors duration-200">
+                <i class="fas fa-edit mr-2"></i>
+                Edit Work Details
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Update Work Status Modal -->
+<div id="updateStatusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Update Work Status</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closeStatusModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="updateStatusForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Current Status</label>
+                    <div class="p-3 bg-gray-50 rounded-lg">
+                        <span id="currentStatus" class="text-sm font-medium text-gray-900"></span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="newStatus" class="block text-sm font-medium text-gray-700 mb-2">New Status</label>
+                    <select id="newStatus" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select new status...</option>
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="on_hold">On Hold</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeStatusModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200">
+                        <i class="fas fa-save mr-2"></i>
+                        Update Status
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentWorkId = null;
+
+function openStatusModal(workId, currentStatus) {
+    currentWorkId = workId;
+    document.getElementById('currentStatus').textContent = currentStatus;
+    document.getElementById('updateStatusModal').classList.remove('hidden');
+    
+    // Reset form
+    document.getElementById('updateStatusForm').reset();
+    
+    // Focus on select element
+    document.getElementById('newStatus').focus();
+}
+
+function closeStatusModal() {
+    document.getElementById('updateStatusModal').classList.add('hidden');
+    currentWorkId = null;
+}
+
+// Handle form submission
+document.getElementById('updateStatusForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const newStatus = document.getElementById('newStatus').value;
+    if (!newStatus) {
+        showAlert('Please select a new status', 'error');
+        return;
+    }
+    
+    if (!currentWorkId) {
+        showAlert('Work ID not found', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#updateStatusForm button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
+    submitBtn.disabled = true;
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('status', newStatus);
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    // Make AJAX request
+    fetch(`/maintenance/work/${currentWorkId}/update-status/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Work status updated successfully!', 'success');
+            
+            // Update the status display on the page
+            updateStatusDisplay(data.status, data.grievance_status);
+            
+            // Close modal
+            closeStatusModal();
+            
+            // Optionally reload the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showAlert(data.error || 'Failed to update status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('An error occurred while updating status', 'error');
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+function updateStatusDisplay(workStatus, grievanceStatus) {
+    // Update work status display
+    const workStatusElement = document.getElementById('workStatus');
+    if (workStatusElement) {
+        workStatusElement.textContent = workStatus;
+        workStatusElement.className = getStatusClass(workStatus, 'work');
+    }
+    
+    // Update grievance status display
+    const grievanceStatusElement = document.getElementById('grievanceStatus');
+    if (grievanceStatusElement) {
+        grievanceStatusElement.textContent = grievanceStatus;
+        grievanceStatusElement.className = getStatusClass(grievanceStatus, 'grievance');
+    }
+}
+
+function getStatusClass(status, type) {
+    const baseClass = type === 'work' 
+        ? 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium'
+        : 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium';
+    
+    const statusClasses = {
+        'Pending': `${baseClass} bg-yellow-100 text-yellow-800`,
+        'In Progress': `${baseClass} bg-blue-100 text-blue-800`,
+        'Completed': `${baseClass} bg-green-100 text-green-800`,
+        'On Hold': `${baseClass} bg-gray-100 text-gray-800`,
+        'Assigned': `${baseClass} bg-purple-100 text-purple-800`,
+        'Cancelled': `${baseClass} bg-red-100 text-red-800`
+    };
+    
+    return statusClasses[status] || `${baseClass} bg-gray-100 text-gray-800`;
+}
+
+function showAlert(message, type) {
+    // Create alert element
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} mb-3 p-4 rounded-lg border-l-4 ${
+        type === 'success' ? 'bg-green-50 border-green-400 text-green-700' :
+        type === 'error' ? 'bg-red-50 border-red-400 text-red-700' :
+        type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-700' :
+        'bg-blue-50 border-blue-400 text-blue-700'
+    }`;
+    
+    alertDiv.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${
+                type === 'success' ? 'fa-check-circle' :
+                type === 'error' ? 'fa-exclamation-circle' :
+                type === 'warning' ? 'fa-exclamation-triangle' :
+                'fa-info-circle'
+            } mr-2"></i>
+            ${message}
+        </div>
+    `;
+    
+    // Insert at the top of the main content
+    const mainContent = document.querySelector('main');
+    if (mainContent) {
+        mainContent.insertBefore(alertDiv, mainContent.firstChild);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+}
+
+// Close modal when clicking outside
+document.getElementById('updateStatusModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeStatusModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !document.getElementById('updateStatusModal').classList.contains('hidden')) {
+        closeStatusModal();
+    }
+});
+</script>
+
+{% endblock %}

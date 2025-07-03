@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel ERP - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+        }
+        
+        /* Starry background */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+        
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        /* Mountain silhouettes */
+        .mountains {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40%;
+            background: linear-gradient(to top, #2d1b69 0%, transparent 100%);
+        }
+        
+        .mountains::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: 
+                polygon(0 100%, 15% 60%, 25% 80%, 35% 40%, 50% 70%, 65% 30%, 80% 60%, 90% 45%, 100% 65%, 100% 100%);
+            background-color: rgba(45, 27, 105, 0.8);
+        }
+        
+        .mountains::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: 
+                polygon(0 100%, 20% 80%, 30% 60%, 45% 85%, 60% 50%, 75% 75%, 85% 55%, 100% 70%, 100% 100%);
+            background-color: rgba(45, 27, 105, 0.6);
+        }
+        
+        /* Tree silhouettes */
+        .trees {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 25%;
+            background: transparent;
+        }
+        
+        .tree {
+            position: absolute;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 40px solid rgba(30, 20, 70, 0.9);
+        }
+        
+        .tree::before {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -6px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 25px solid rgba(30, 20, 70, 0.9);
+        }
+        
+        .tree::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -2px;
+            width: 4px;
+            height: 15px;
+            background: rgba(30, 20, 70, 0.9);
+        }
+        
+        /* Login container */
+        .login-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            width: 400px;
+            max-width: 90vw;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .login-container.shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+            25% { transform: translate(-50%, -50%) translateX(-5px); }
+            75% { transform: translate(-50%, -50%) translateX(5px); }
+        }
+        
+        .login-title {
+            text-align: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Login type selector */
+        .login-type-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+        
+        .login-type-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 8px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .login-type-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+        }
+        
+        .login-type-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            color: white;
+        }
+        
+        /* Guest info */
+        .guest-credentials-info {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .guest-credentials-info.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Form styles */
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 15px 20px;
+            padding-left: 50px;
+            color: white;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+        
+        .form-input.is-invalid {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+        }
+        
+        .form-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+        
+        .password-toggle:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* Remember me checkbox */
+        .remember-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .custom-checkbox {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .custom-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .checkmark {
+            height: 18px;
+            width: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-checkbox:hover input ~ .checkmark {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .custom-checkbox input:checked ~ .checkmark {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .checkmark::after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 5px;
+            top: 2px;
+            width: 5px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        
+        .custom-checkbox input:checked ~ .checkmark::after {
+            display: block;
+        }
+        
+        .checkbox-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        /* Login button */
+        .login-btn {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 25px;
+            padding: 15px;
+            color: #667eea;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .login-btn:hover:not(:disabled) {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* Messages */
+        .alert {
+            border-radius: 15px;
+            border: none;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .alert-danger {
+            background: rgba(255, 107, 107, 0.9);
+            color: white;
+        }
+        
+        .alert-success {
+            background: rgba(81, 207, 102, 0.9);
+            color: white;
+        }
+        
+        .alert-info {
+            background: rgba(51, 154, 240, 0.9);
+            color: white;
+        }
+        
+        .invalid-feedback {
+            display: block;
+            width: 100%;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #ff6b6b;
+            text-align: center;
+        }
+        
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .login-container {
+                width: 350px;
+                padding: 30px;
+            }
+            
+            .login-title {
+                font-size: 1.8rem;
+            }
+            
+            .login-type-btn {
+                padding: 6px 15px;
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                width: 320px;
+                padding: 25px;
+            }
+            
+            .login-title {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Starry background -->
+    <div class="stars" id="stars"></div>
+    
+    <!-- Mountain silhouettes -->
+    <div class="mountains"></div>
+    
+    <!-- Tree silhouettes -->
+    <div class="trees" id="trees"></div>
+    
+    <!-- Login container -->
+    <div class="login-container" id="loginContainer">
+        <h1 class="login-title">Hotel ERP Login</h1>
+        
+        <!-- Login Type Selector -->
+        <div class="login-type-selector">
+            <button type="button" class="login-type-btn active" data-type="staff">
+                <i class="fas fa-user-tie me-1"></i>Staff
+            </button>
+            <button type="button" class="login-type-btn" data-type="guest">
+                <i class="fas fa-user me-1"></i>Guest
+            </button>
+        </div>
+        
+        <!-- Guest Credentials Info -->
+        <div class="guest-credentials-info" id="guestInfo">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Guest Login:</strong> Use your email as username and phone number as password.
+        </div>
+        
+        <!-- Messages Container -->
+        <div id="messageContainer"></div>
+        
+        <!-- Django Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Login Form -->
+        <form id="loginForm" method="post" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                <i class="fas fa-user form-icon"></i>
+                <input type="text" class="form-input" id="username" name="username" placeholder="Username" required>
+            </div>
+            <div class="invalid-feedback" id="usernameError"></div>
+            
+            <div class="form-group">
+                <i class="fas fa-lock form-icon"></i>
+                <input type="password" class="form-input" id="password" name="password" placeholder="Password" required>
+                <button type="button" class="password-toggle" id="passwordToggle">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <div class="invalid-feedback" id="passwordError"></div>
+            
+            <div class="remember-section">
+                <label class="custom-checkbox">
+                    <input type="checkbox" id="rememberMe" name="rememberMe">
+                    <span class="checkmark"></span>
+                    <span class="checkbox-label">Remember me</span>
+                </label>
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">
+                Login
+            </button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // CSRF Token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Application State
+        const app = {
+            currentLoginType: 'staff',
+            isLoading: false,
+            ajaxLoginUrl: '/authentication/ajax/login/',  // Django URL
+        };
+
+        // DOM Elements
+        const elements = {
+            loginContainer: document.getElementById('loginContainer'),
+            loginForm: document.getElementById('loginForm'),
+            usernameInput: document.getElementById('username'),
+            passwordInput: document.getElementById('password'),
+            loginBtn: document.getElementById('loginBtn'),
+            passwordToggle: document.getElementById('passwordToggle'),
+            messageContainer: document.getElementById('messageContainer'),
+            guestInfo: document.getElementById('guestInfo'),
+            loginTypeBtns: document.querySelectorAll('.login-type-btn'),
+            usernameError: document.getElementById('usernameError'),
+            passwordError: document.getElementById('passwordError'),
+            rememberMe: document.getElementById('rememberMe')
+        };
+
+        // Initialize Application
+        function initApp() {
+            setupEventListeners();
+            updateLoginType('staff');
+            createStars();
+            createTrees();
+            
+            // Auto-focus username field
+            elements.usernameInput.focus();
+            
+            console.log('Hotel ERP Login System Initialized');
+        }
+
+        // Create starry background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const numberOfStars = 150;
+            
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Create tree silhouettes
+        function createTrees() {
+            const treesContainer = document.getElementById('trees');
+            const treePositions = [5, 12, 18, 25, 32, 38, 45, 52, 58, 65, 72, 78, 85, 92];
+            
+            treePositions.forEach(position => {
+                const tree = document.createElement('div');
+                tree.className = 'tree';
+                tree.style.left = position + '%';
+                tree.style.height = (Math.random() * 20 + 30) + 'px';
+                treesContainer.appendChild(tree);
+            });
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Login form submission
+            elements.loginForm.addEventListener('submit', handleLogin);
+            
+            // Password toggle
+            elements.passwordToggle.addEventListener('click', togglePasswordVisibility);
+            
+            // Login type buttons
+            elements.loginTypeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.dataset.type;
+                    updateLoginType(type);
+                });
+            });
+            
+            // Input validation
+            elements.usernameInput.addEventListener('input', () => clearFieldError('username'));
+            elements.passwordInput.addEventListener('input', () => clearFieldError('password'));
+            
+            // Enter key handling
+            elements.usernameInput.addEventListener('keypress', handleEnterKey);
+            elements.passwordInput.addEventListener('keypress', handleEnterKey);
+        }
+
+        // Update Login Type
+        function updateLoginType(type) {
+            app.currentLoginType = type;
+            
+            // Update active button
+            elements.loginTypeBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+            
+            // Update form placeholders
+            if (type === 'guest') {
+                elements.usernameInput.placeholder = 'Email Address';
+                elements.passwordInput.placeholder = 'Phone Number';
+                elements.usernameInput.type = 'email';
+                elements.guestInfo.classList.add('show');
+            } else {
+                elements.usernameInput.placeholder = 'Username';
+                elements.passwordInput.placeholder = 'Password';
+                elements.usernameInput.type = 'text';
+                elements.guestInfo.classList.remove('show');
+            }
+            
+            // Clear form
+            elements.usernameInput.value = '';
+            elements.passwordInput.value = '';
+            elements.rememberMe.checked = false;
+            clearMessages();
+            clearFieldErrors();
+        }
+
+        // Handle Login - AJAX to Django backend
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            if (app.isLoading) return;
+            
+            const formData = new FormData(elements.loginForm);
+            const username = formData.get('username').trim();
+            const password = formData.get('password').trim();
+            const rememberMe = formData.get('rememberMe') ? true : false;
+            
+            // Validate inputs
+            if (!validateLogin(username, password)) {
+                return;
+            }
+            
+            // Show loading state
+            setLoadingState(true);
+            
+            try {
+                // Send AJAX request to Django
+                const response = await fetch(app.ajaxLoginUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        loginType: app.currentLoginType,
+                        rememberMe: rememberMe
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showMessage('Login successful! Redirecting...', 'success');
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || 'Login failed');
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage(error.message || 'Login failed. Please try again.', 'danger');
+                elements.loginContainer.classList.add('shake');
+                setTimeout(() => {
+                    elements.loginContainer.classList.remove('shake');
+                }, 500);
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        // Validate Login
+        function validateLogin(username, password) {
+            let isValid = true;
+            
+            // Clear previous errors
+            clearFieldErrors();
+            
+            // Username validation
+            if (!username) {
+                setFieldError('username', 'Username is required');
+                isValid = false;
+            } else if (app.currentLoginType === 'guest' && !isValidEmail(username)) {
+                setFieldError('username', 'Please enter a valid email address');
+                isValid = false;
+            }
+            
+            // Password validation
+            if (!password) {
+                setFieldError('password', 'Password is required');
+                isValid = false;
+            } else if (app.currentLoginType === 'guest' && !isValidPhone(password)) {
+                setFieldError('password', 'Please enter a valid phone number');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        // UI Helper Functions
+        function setLoadingState(loading) {
+            app.isLoading = loading;
+            elements.loginBtn.disabled = loading;
+            
+            if (loading) {
+                elements.loginBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </span>
+                    Signing In...
+                `;
+            } else {
+                elements.loginBtn.innerHTML = 'Login';
+            }
+        }
+
+        function showMessage(message, type) {
+            clearMessages();
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${getIconForType(type)} me-2"></i>
+                ${message}
+            `;
+            
+            elements.messageContainer.appendChild(alertDiv);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function clearMessages() {
+            elements.messageContainer.innerHTML = '';
+        }
+
+        function setFieldError(fieldName, message) {
+            const input = document.getElementById(fieldName);
+            const errorDiv = document.getElementById(fieldName + 'Error');
+            
+            input.classList.add('is-invalid');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function clearFieldError(fieldName) {
+            const input = document.getElementById(fieldName);
+            const errorDiv = document.getElementById(fieldName + 'Error');
+            
+            input.classList.remove('is-invalid');
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+        }
+
+        function clearFieldErrors() {
+            clearFieldError('username');
+            clearFieldError('password');
+        }
+
+        function togglePasswordVisibility() {
+            const icon = elements.passwordToggle.querySelector('i');
+            
+            if (elements.passwordInput.type === 'password') {
+                elements.passwordInput.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                elements.passwordInput.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        function handleEnterKey(e) {
+            if (e.key === 'Enter') {
+                elements.loginForm.dispatchEvent(new Event('submit'));
+            }
+        }
+
+        // Utility Functions
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function isValidPhone(phone) {
+            const phoneRegex = /^\d{10}$/;
+            return phoneRegex.test(phone);
+        }
+
+        function getIconForType(type) {
+            const icons = {
+                'success': 'check-circle',
+                'danger': 'exclamation-circle',
+                'info': 'info-circle',
+                'warning': 'exclamation-triangle'
+            };
+            return icons[type] || 'info-circle';
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

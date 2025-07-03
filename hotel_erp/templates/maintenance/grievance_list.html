@@ -1,0 +1,224 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Grievance List - Maintenance{% endblock %}
+
+{% block page_title %}Grievance Management{% endblock %}
+
+{% block page_description %}View and manage all grievances{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <!-- Filter Section -->
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Filter Grievances</h3>
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                <input type="text" name="search" value="{{ current_filters.search }}" 
+                       placeholder="Guest name, room, ID..." 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">All Status</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">All Priorities</option>
+                    {% for value, label in priority_choices %}
+                        <option value="{{ value }}" {% if current_filters.priority == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Problem Type</label>
+                <select name="problem_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">All Types</option>
+                    {% for value, label in problem_type_choices %}
+                        <option value="{{ value }}" {% if current_filters.problem_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="md:col-span-2 lg:col-span-4 flex space-x-3">
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-search mr-2"></i>
+                    Filter
+                </button>
+                <a href="{% url 'maintenance:grievance_list' %}" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Grievances List -->
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guest Details</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Problem</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for grievance in page_obj %}
+                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">#{{ grievance.grievance_id }}</div>
+                        <div class="text-sm text-gray-500">{{ grievance.booking_id }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">{{ grievance.guest_name }}</div>
+                        <div class="text-sm text-gray-500">{{ grievance.guest_email }}</div>
+                        <div class="text-sm text-gray-500">Room: {{ grievance.room_number }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">{{ grievance.get_problem_type_display }}</div>
+                        <div class="text-sm text-gray-500">{{ grievance.description|truncatechars:50 }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {% if grievance.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% elif grievance.status == 'assigned' %}bg-blue-100 text-blue-800
+                            {% elif grievance.status == 'in_progress' %}bg-indigo-100 text-indigo-800
+                            {% elif grievance.status == 'completed' %}bg-green-100 text-green-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ grievance.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {% if grievance.priority == 'urgent' %}bg-red-100 text-red-800
+                            {% elif grievance.priority == 'high' %}bg-orange-100 text-orange-800
+                            {% elif grievance.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ grievance.get_priority_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if grievance.assigned_to %}
+                            <div class="text-sm font-medium text-gray-900">{{ grievance.assigned_to.get_full_name|default:grievance.assigned_to.username }}</div>
+                        {% else %}
+                            <span class="text-sm text-gray-400 italic">Unassigned</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ grievance.created_at|date:"M d, Y" }}
+                        <div class="text-xs">{{ grievance.created_at|time:"H:i" }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <a href="{% url 'maintenance:grievance_detail' grievance.grievance_id %}" 
+                               class="text-blue-600 hover:text-blue-900 transition-colors duration-200">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if user.user_type == 'admin' and grievance.status == 'pending' %}
+                            <a href="{% url 'maintenance:assign_grievance' grievance.grievance_id %}" 
+                               class="text-green-600 hover:text-green-900 transition-colors duration-200">
+                                <i class="fas fa-user-plus"></i>
+                            </a>
+                            {% endif %}
+                            {% if grievance.assigned_to == user or user.user_type == 'admin' %}
+                                {% if not grievance.maintenance_work %}
+                                <a href="{% url 'maintenance:create_maintenance_work' grievance.grievance_id %}" 
+                                   class="text-purple-600 hover:text-purple-900 transition-colors duration-200">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-clipboard-list text-4xl text-gray-300 mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No grievances found</h3>
+                            <p class="text-gray-500">Try adjusting your search or filter criteria.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Previous
+                    </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Next
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing
+                        <span class="font-medium">{{ page_obj.start_index }}</span>
+                        to
+                        <span class="font-medium">{{ page_obj.end_index }}</span>
+                        of
+                        <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                        results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                    {{ num }}
+                                </span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    {{ num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
